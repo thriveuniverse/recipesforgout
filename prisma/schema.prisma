@@ -1,0 +1,197 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/recipesforgout/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  isAdmin       Boolean         @default(false)
+  accounts      Account[]
+  sessions      Session[]
+  favorites     UserFavorite[]
+  mealPlans     MealPlan[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Ingredient {
+  id                  String             @id @default(cuid())
+  name                String             @unique
+  purineMgPer100g     Float
+  category            String             // low, moderate, high
+  defaultConfidence   String             // high, medium, low
+  notes               String?
+  recipeIngredients   RecipeIngredient[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
+
+model Recipe {
+  id                  String             @id @default(cuid())
+  recipeId            String             @unique // RG-0001, RG-0002, etc.
+  slug                String             @unique
+  title               String
+  category            String             // Breakfast, Lunch, Dinner, Snack, Dessert, Drink
+  dietTags            String[]           // vegetarian, vegan, etc.
+  servings            Int
+  prepTimeMin         Int
+  cookTimeMin         Int
+  totalTimeMin        Int
+  difficulty          String             // easy, medium, hard
+  instructions        String[]
+  imageUrl            String?
+  imagePrompt         String?
+  
+  // Nutrition per serving
+  caloriesKcal        Int?
+  proteinG            Float?
+  carbsG              Float?
+  fatG                Float?
+  fiberG              Float?
+  sugarG              Float?
+  addedSugarG         Float?
+  sodiumMg            Int?
+  potassiumMg         Int?
+  vitaminCMg          Float?
+  
+  // Purine information
+  purineMgPerServing  Float
+  purineCategory      String             // low, moderate, high
+  purineConfidence    String             // high, medium, low
+  purineCalculationNote String?
+  
+  // Gout-specific notes
+  whyItWorks          String?
+  portionGuidance     String?
+  swapOptions         String[]
+  triggerWarnings     String[]
+  allergens           String[]
+  goutTriggerFlags    String[]           // alcohol_free, low_added_sugar, etc.
+  waterRichScore      Int?
+  
+  ingredients         RecipeIngredient[]
+  favorites           UserFavorite[]
+  mealPlanRecipes     MealPlanRecipe[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@index([category])
+  @@index([purineCategory])
+  @@index([slug])
+}
+
+model RecipeIngredient {
+  id                    String  @id @default(cuid())
+  recipeId              String
+  ingredientId          String
+  amountG               Float
+  notes                 String?
+  purineMgPer100g       Float
+  purineSourceNote      String?
+  nutritionSourceNote   String?
+  
+  recipe                Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient            Ingredient @relation(fields: [ingredientId], references: [id])
+  
+  @@unique([recipeId, ingredientId])
+}
+
+model UserFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  recipeId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, recipeId])
+  @@index([userId])
+}
+
+model MealPlan {
+  id          String           @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipes     MealPlanRecipe[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  @@index([userId])
+}
+
+model MealPlanRecipe {
+  id          String    @id @default(cuid())
+  mealPlanId  String
+  recipeId    String
+  dayOfWeek   Int?      // 0-6 (Sunday-Saturday)
+  mealType    String?   // breakfast, lunch, dinner, snack
+  notes       String?
+  mealPlan    MealPlan  @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  recipe      Recipe    @relation(fields: [recipeId], references: [id])
+  createdAt   DateTime  @default(now())
+  
+  @@index([mealPlanId])
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String   @db.Text
+  status    String   @default("new") // new, read, resolved
+  createdAt DateTime @default(now())
+  
+  @@index([status])
+  @@index([createdAt])
+}
