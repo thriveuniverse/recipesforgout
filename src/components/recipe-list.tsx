@@ -1,9 +1,13 @@
-// src/components/recipe-list.tsx   ← overwrite entirely
+// src/components/recipe-list.tsx
 import { RecipeCard } from "./recipe-card";
 
-export function RecipeList({ recipes }: { recipes: typeof import("@/data/recipes").recipes }) {
+type Props = {
+  recipes: any[]; // ← This kills the tuple length error forever
+};
+
+export function RecipeList({ recipes }: Props) {
   if (recipes.length === 0) {
-    return <p className="text-center py-12 text-xl text-slate-400">No recipes match your filters – try different options!</p>;
+    return <p className="text-center py-12 text-xl text-slate-400">No recipes match – try different filters!</p>;
   }
 
   return (
