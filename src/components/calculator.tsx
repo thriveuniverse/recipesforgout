@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { RecipeList } from "./recipe-list";
-import { recipes } from "@/data/recipes";
+import { recipes, type Recipe } from "@/data/recipes";
 
 export function Calculator() {
-  const [craving, setCraving] = useState("");
-  const [time, setTime] = useState("");
-  const [energy, setEnergy] = useState("");
+  const [craving, setCraving] = useState<"steak" | "pasta" | "curry" | "sweet" | "">("");
+  const [time, setTime] = useState<"" | "20" | "40">("");
+  const [energy, setEnergy] = useState<"" | "low" | "high">("");
 
-  const filtered = recipes.filter((r) => {
+  const filtered: Recipe[] = recipes.filter((r) => {
     if (craving && !r.tags.includes(craving)) return false;
     if (time === "20" && r.time > 20) return false;
     if (time === "40" && r.time > 40) return false;
@@ -18,14 +18,15 @@ export function Calculator() {
     return true;
   });
 
-  const hasFilters = craving || time || energy;
+  const hasFilters = !!craving || !!time || !!energy;
 
   return (
     <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl">
       <div className="grid md:grid-cols-3 gap-6 mb-10">
+        {/* Craving */}
         <div>
           <label className="block text-lg font-medium mb-3">Craving?</label>
-          <select value={craving} onChange={(e) => setCraving(e.target.value)} className="w-full px-5 py-4 rounded-xl bg-white/20 text-white border border-white/30 focus:border-amber-400 focus:outline-none">
+          <select value={craving} onChange={(e) => setCraving(e.target.value as any)} className="w-full px-5 py-4 rounded-xl bg-white/20 text-white border border-white/30 focus:border-amber-400 focus:outline-none">
             <option value="">Anything</option>
             <option value="steak">Steak</option>
             <option value="pasta">Pasta</option>
@@ -33,17 +34,21 @@ export function Calculator() {
             <option value="sweet">Sweet</option>
           </select>
         </div>
+
+        {/* Time */}
         <div>
           <label className="block text-lg font-medium mb-3">Time?</label>
-          <select value={time} onChange={(e) => setTime(e.target.value)} className="w-full px-5 py-4 rounded-xl bg-white/20 text-white border border-white/30 focus:border-amber-400 focus:outline-none">
+          <select value={time} onChange={(e) => setTime(e.target.value as any)} className="w-full px-5 py-4 rounded-xl bg-white/20 text-white border border-white/30 focus:border-amber-400 focus:outline-none">
             <option value="">No rush</option>
             <option value="20">Under 20 min</option>
             <option value="40">Under 40 min</option>
           </select>
         </div>
+
+        {/* Energy */}
         <div>
           <label className="block text-lg font-medium mb-3">Energy?</label>
-          <select value={energy} onChange={(e) => setEnergy(e.target.value)} className="w-full px-5 py-4 rounded-xl bg-white/20 text-white border border-white/30 focus:border-amber-400 focus:outline-none">
+          <select value={energy} onChange={(e) => setEnergy(e.target.value as any)} className="w-full px-5 py-4 rounded-xl bg-white/20 text-white border border-white/30 focus:border-amber-400 focus:outline-none">
             <option value="">Any</option>
             <option value="low">Knackered</option>
             <option value="high">Got energy</option>
@@ -53,11 +58,15 @@ export function Calculator() {
 
       {hasFilters ? (
         <>
-          <p className="text-2xl font-bold text-amber-300 text-center mb-8">Your perfect gout-safe meal:</p>
+          <p className="text-2xl font-bold text-amber-300 text-center mb-8">
+            Your perfect gout-safe meal:
+          </p>
           <RecipeList recipes={filtered.slice(0, 6)} />
         </>
       ) : (
-        <p className="text-center text-xl text-slate-300">Pick one or more options above → instant results</p>
+        <p className="text-center text-xl text-slate-300">
+          Pick one or more options above → instant results
+        </p>
       )}
     </div>
   );
