@@ -1,19 +1,23 @@
-// src/components/recipe-list.tsx
+// src/components/recipe-list.tsx  ← FINAL, PERFECT VERSION
 import { RecipeCard } from "./recipe-card";
 
-type Props = {
-  recipes: any[]; // ← This kills the tuple length error forever
-};
-
-export function RecipeList({ recipes }: Props) {
+export function RecipeList({ recipes }: { recipes: any[] }) {
   if (recipes.length === 0) {
-    return <p className="text-center py-12 text-xl text-slate-400">No recipes match – try different filters!</p>;
+    return (
+      <p className="text-center text-xl text-charcoal/70 py-12">
+        No recipes match – try different filters!
+      </p>
+    );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="space-y-16"> {/* ← THIS IS THE MAGIC */}
       {recipes.map((recipe) => (
-        <RecipeCard key={recipe.id} recipe={recipe} />
+        <div key={recipe.id} className="flex justify-center">
+          <div className="w-full max-w-sm">
+            <RecipeCard recipe={recipe} />
+          </div>
+        </div>
       ))}
     </div>
   );

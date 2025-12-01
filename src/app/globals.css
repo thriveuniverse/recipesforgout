@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+.max-w-7xl { max-width: 80rem !important; }
+
 :root {
   --beige: #F5F2E9;
   --charcoal: #4A4A4A;
